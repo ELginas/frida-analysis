@@ -1,4 +1,5 @@
 import argparse
+import json
 import threading
 from typing import List, Mapping, Optional, Tuple
 
@@ -128,18 +129,20 @@ class DiscovererApplication(ConsoleApplication, UI):
         module_functions: Mapping[Module, List[Tuple[ModuleFunction, int]]],
         dynamic_functions: List[Tuple[ModuleFunction, int]],
     ) -> None:
+        results_object = {}
         for module, functions in module_functions.items():
-            self._print(module.name)
-            self._print("\t%-10s\t%s" % ("Calls", "Function"))
+            module_functions = {}
             for function, count in sorted(functions, key=lambda item: item[1], reverse=True):
-                self._print("\t%-10d\t%s" % (count, function))
-            self._print("")
+                module_functions[function.name] = count
+            results_object[module.name] = module_functions
 
         if len(dynamic_functions) > 0:
-            self._print("Dynamic functions:")
-            self._print("\t%-10s\t%s" % ("Calls", "Function"))
+            dynamic_functions = {}
             for function, count in sorted(dynamic_functions, key=lambda item: item[1], reverse=True):
-                self._print("\t%-10d\t%s" % (count, function))
+                dynamic_functions[function.name] = count
+            results_object["dyn"] = dynamic_functions
+        
+        print(json.dumps(results_object))
 
         self._results_received.set()
 
