@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 import threading
 from typing import List, Mapping, Optional, Tuple
 
@@ -109,13 +110,16 @@ class DiscovererApplication(ConsoleApplication, UI):
     def _needs_target(self) -> bool:
         return True
 
+    def _update_status(self, msg) -> None:
+        print(msg, file=sys.stderr)
+
     def _start(self) -> None:
         self._update_status("Injecting script...")
         self._discoverer = Discoverer(self._reactor)
         self._discoverer.start(self._session, self._runtime, self)
 
     def _stop(self) -> None:
-        self._print("Stopping...")
+        self._update_status("Stopping...")
         assert self._discoverer is not None
         self._discoverer.dispose()
         self._discoverer = None
