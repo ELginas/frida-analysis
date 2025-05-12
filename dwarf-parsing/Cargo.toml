@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+cpp_demangle = "0.4.4"
 gimli = "0.31.1"
 memmap2 = "0.9.5"
 object = "0.36.7"
