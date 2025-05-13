@@ -1,15 +1,57 @@
 const threadIds = new Set();
 const result = new Map();
 
+function resultToJSON(result) {
+  let obj = {};
+  for (const [k, v] of result.entries()) {
+    const location = k.toString(16);
+    obj[location] = [];
+    for (const target of v) {
+      const hexTarget = target.toString(16);
+      obj[location].push(hexTarget);
+    }
+  }
+  return JSON.stringify(obj);
+}
+
 rpc.exports = {
   start: function () {
     for (const { id: threadId } of Process.enumerateThreads()) {
       threadIds.add(threadId);
       Stalker.follow(threadId, {
         events: { call: true },
-        onCallSummary(summary) {
-          for (const [address, count] of Object.entries(summary)) {
-            result.set(address, (result.get(address) ?? 0) + count);
+        onReceive(events) {
+          let dataview = new DataView(events);
+          let cursor = 0;
+
+          // Actually the format is:
+          // Size: 32; align: 8
+          // type: 0 (4)
+          // _pad1: 4 (4)
+          // location: 8 (8)
+          // target: 16 (8)
+          // depth: 24 (4)
+          // _pad2: 28 (4)
+          // _pad1 and _pad2 kinda leak memory, is random and shouldn't be read.
+          while (cursor < dataview.byteLength) {
+            const type = dataview.getUint32(cursor, true);
+            cursor += 4;
+            if (type == 1) {
+              const location = dataview.getBigUint64(cursor + 4, true);
+              const target = dataview.getBigUint64(cursor + 12, true);
+              cursor += 28;
+
+              if (!result.has(location)) {
+                result.set(location, []);
+              }
+              const targets = result.get(location);
+              if (!targets.includes(target)) {
+                targets.push(target);
+              }
+            } else {
+              console.error("unknown type", type);
+              console.error(dataview.buffer.slice(cursor, cursor + 16));
+            }
           }
         },
       });
@@ -28,55 +70,7 @@ rpc.exports = {
     const targets = [];
     const modules = {};
 
-    const moduleMap = new ModuleMap();
-    const allModules = moduleMap
-      .values()
-      .reduce((m, module) => m.set(module.path, module), new Map());
-    const moduleDetails = new Map();
-    let nextModuleId = 1;
-
-    for (const [address, count] of result.entries()) {
-      let moduleId = 0;
-      let name;
-      let visibility = "i";
-      const addressPtr = ptr(address);
-
-      const path = moduleMap.findPath(addressPtr);
-      if (path !== null) {
-        const module = allModules.get(path);
-
-        let details = moduleDetails.get(path);
-        if (details !== undefined) {
-          moduleId = details.id;
-        } else {
-          moduleId = nextModuleId++;
-
-          details = {
-            id: moduleId,
-            exports: module
-              .enumerateExports()
-              .reduce((m, e) => m.set(e.address.toString(), e.name), new Map()),
-          };
-          moduleDetails.set(path, details);
-
-          modules[moduleId] = module;
-        }
-
-        const exportName = details.exports.get(address);
-        if (exportName !== undefined) {
-          name = exportName;
-          visibility = "e";
-        } else {
-          name = "sub_" + addressPtr.sub(module.base).toString(16);
-        }
-      } else {
-        name = "dsub_" + addressPtr.toString(16);
-      }
-
-      targets.push([moduleId, name, visibility, address, count]);
-    }
-
-    result.clear();
+    console.log(resultToJSON(result));
 
     return {
       targets,
