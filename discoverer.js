@@ -14,6 +14,19 @@ function resultToJSON(result) {
   return JSON.stringify(obj);
 }
 
+function moduleMapToJSON(moduleMap) {
+  const obj = [];
+  const modules = moduleMap.values();
+  for (const module of modules) {
+    const entry = {};
+    entry.name = module.name;
+    entry.base = module.base;
+    entry.path = module.path;
+    obj.push(entry);
+  }
+  return JSON.stringify(obj);
+}
+
 rpc.exports = {
   start: function () {
     for (const { id: threadId } of Process.enumerateThreads()) {
@@ -67,14 +80,11 @@ rpc.exports = {
     }
     threadIds.clear();
 
-    const targets = [];
-    const modules = {};
-
-    console.log(resultToJSON(result));
+    const moduleMap = new ModuleMap();
 
     return {
-      targets,
-      modules,
+      resultJSON: resultToJSON(result),
+      moduleMapJSON: moduleMapToJSON(moduleMap),
     };
   },
 };
