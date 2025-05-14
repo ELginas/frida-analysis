@@ -21,6 +21,7 @@ function moduleMapToJsonArray(moduleMap) {
     const entry = {};
     entry.name = module.name;
     entry.base = module.base;
+    entry.size = module.size;
     entry.path = module.path;
     array.push(entry);
   }
