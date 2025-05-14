@@ -1,7 +1,7 @@
 const threadIds = new Set();
-const result = new Map();
+const functions = new Map();
 
-function resultToJSON(result) {
+function resultToJsonObj(result) {
   let obj = {};
   for (const [k, v] of result.entries()) {
     const location = k.toString(16);
@@ -11,20 +11,20 @@ function resultToJSON(result) {
       obj[location].push(hexTarget);
     }
   }
-  return JSON.stringify(obj);
+  return obj;
 }
 
-function moduleMapToJSON(moduleMap) {
-  const obj = [];
+function moduleMapToJsonArray(moduleMap) {
+  const array = [];
   const modules = moduleMap.values();
   for (const module of modules) {
     const entry = {};
     entry.name = module.name;
     entry.base = module.base;
     entry.path = module.path;
-    obj.push(entry);
+    array.push(entry);
   }
-  return JSON.stringify(obj);
+  return array;
 }
 
 rpc.exports = {
@@ -54,10 +54,10 @@ rpc.exports = {
               const target = dataview.getBigUint64(cursor + 12, true);
               cursor += 28;
 
-              if (!result.has(location)) {
-                result.set(location, []);
+              if (!functions.has(location)) {
+                functions.set(location, []);
               }
-              const targets = result.get(location);
+              const targets = functions.get(location);
               if (!targets.includes(target)) {
                 targets.push(target);
               }
@@ -81,10 +81,11 @@ rpc.exports = {
     threadIds.clear();
 
     const moduleMap = new ModuleMap();
+    const json = JSON.stringify({
+      functions: resultToJsonObj(functions),
+      modules: moduleMapToJsonArray(moduleMap),
+    });
 
-    return {
-      resultJSON: resultToJSON(result),
-      moduleMapJSON: moduleMapToJSON(moduleMap),
-    };
+    return json;
   },
 };

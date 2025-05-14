@@ -14,7 +14,7 @@ class UI:
     def on_sample_start(self, total: int) -> None:
         pass
 
-    def on_sample_result(self, result_json: str, module_map_json: str) -> None:
+    def on_sample_result(self, json: str) -> None:
         pass
 
     def _on_script_created(self, script: frida.core.Script) -> None:
@@ -57,8 +57,7 @@ class Discoverer:
     def stop(self) -> None:
         result = self._script.exports_sync.stop()
 
-        self._ui.on_sample_result(result['resultJSON'],
-                                  result['moduleMapJSON'])
+        self._ui.on_sample_result(result)
 
     def _create_discover_script(self) -> str:
         return open("discoverer.js").read()
@@ -105,9 +104,8 @@ class DiscovererApplication(ConsoleApplication, UI):
         self._update_status(f"Tracing {total} threads. Press ENTER to stop.")
         self._resume()
 
-    def on_sample_result(self, result_json: str, module_map_json: str) -> None:
-        print(result_json)
-        print(module_map_json)
+    def on_sample_result(self, json: str) -> None:
+        print(json)
 
         self._results_received.set()
 
