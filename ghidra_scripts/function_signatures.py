@@ -1,5 +1,6 @@
 import json
 import os
+from utils import read_json
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
 data_filepath = os.path.normpath(
@@ -12,11 +13,6 @@ functionManager = currentProgram.getFunctionManager()
 def getFunctionAt(offset):
     functionAddress = currentProgram.getImageBase().add(offset)
     return functionManager.getFunctionAt(functionAddress)
-
-
-def read_json(filename):
-    text = open(filename).read()
-    return json.loads(text)
 
 
 data = read_json(data_filepath)
