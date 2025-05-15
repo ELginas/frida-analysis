@@ -73,7 +73,7 @@ pub mod serde_functions {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Module {
     pub name: String,
     #[serde(with = "SerHex::<CompactPfx>")]
