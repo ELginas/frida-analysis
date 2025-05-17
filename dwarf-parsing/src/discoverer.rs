@@ -7,7 +7,7 @@ use serde_hex::{CompactPfx, SerHex};
 pub struct DiscovererJson {
     #[serde(with = "serde_functions")]
     pub functions: HashMap<u64, Vec<u64>>,
-    pub modules: Vec<Module>,
+    pub modules: Vec<ModuleMetadata>,
 }
 
 #[derive(Eq, Hash, PartialEq)]
@@ -74,7 +74,7 @@ pub mod serde_functions {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Module {
+pub struct ModuleMetadata {
     pub name: String,
     #[serde(with = "SerHex::<CompactPfx>")]
     pub base: u64,
@@ -82,7 +82,7 @@ pub struct Module {
     pub path: String,
 }
 
-impl Module {
+impl ModuleMetadata {
     pub fn in_range(&self, address: u64) -> bool {
         self.base <= address && address <= self.base + self.size
     }

@@ -5,16 +5,16 @@ use std::{
 };
 
 use anyhow::{Context, bail};
-use dwarf_parsing::discoverer::{DiscovererJson, Module};
+use dwarf_parsing::discoverer::{DiscovererJson, ModuleMetadata};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Target<'a> {
-    pub module: &'a Module,
+    pub module: &'a ModuleMetadata,
     pub offset: u64,
 }
 
 impl<'a> Target<'a> {
-    pub fn new(module: &'a Module, offset: u64) -> Self {
+    pub fn new(module: &'a ModuleMetadata, offset: u64) -> Self {
         Self { module, offset }
     }
 }
@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     // TODO: remove once proper impl is done
-    let external_module = Module {
+    let external_module = ModuleMetadata {
         name: "external".into(),
         base: 0,
         size: 0,
