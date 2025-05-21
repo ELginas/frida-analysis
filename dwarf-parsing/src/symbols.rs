@@ -35,6 +35,7 @@ impl Deref for MappedFile {
     }
 }
 
+#[derive(Debug)]
 pub struct ModuleFile<'a> {
     object: object::File<'a, &'a [u8]>,
 }
@@ -95,6 +96,7 @@ impl<'a> ModuleFile<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct SymbolNames {
     inner: BTreeMap<u64, Vec<String>>,
 }
